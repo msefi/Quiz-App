@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import ModalProvider from "@/components/modals/modal-provider";
 import { Toaster } from "@/components/ui/sonner";
-import "./globals.css";
+import "./user.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,12 +17,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+    <>
         <ModalProvider />
-        <div className="main-user">{children}</div>
+        {children}
         <Toaster position="top-center" duration={5000} richColors />
-      </body>
-    </html>
+    </>
   );
 }
