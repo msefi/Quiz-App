@@ -11,10 +11,10 @@ export const apiUrl = {
 
 export const publicApiUrl = {
     question: `${baseUrl}/PublicQuestion`,
+    quiz: `${baseUrl}/PublicQuiz`,
     quizAttempt: `${baseUrl}/PublicQuiz/attempt`,
     startQuiz: `${baseUrl}/PublicQuiz/start`,
     submitAnswer: `${baseUrl}/PublicQuiz/answer`,
+    submitBulkEmptyAnswers: `${baseUrl}/PublicQuiz/answer/bulk-empty`,
     finish: `${baseUrl}/PublicQuiz/finish`,
 };
-
-export const quizId = "019952cb-20b4-732d-87e7-918151cf883c";

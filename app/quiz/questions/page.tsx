@@ -1,49 +1,82 @@
 "use client";
 
 import Questions from "@/components/questions";
-import { redirect, useRouter } from "next/navigation";
-import { publicApiUrl, quizId } from "@/constants/api-url";
+import { useRouter } from "next/navigation";
+import { publicApiUrl } from "@/constants/api-url";
 import { apiRequest } from "@/lib/fetcher";
+import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
 import "./questions.css";
+
+type QuizResponse = {
+    id: string
+    name: string
+    useTimer: boolean
+    timerType?: string
+    timerDuration?: number
+    highlightCorrectAnswer: boolean
+    allowRetake: boolean
+    questions: any[]
+}
 
 type Props = {
 	searchParams: {
-		email: string;
 		attemptId: string;
 	};
 };
 
-export default async function QuestionsPage({ searchParams }: Props) {
-	const email = searchParams.email;
+export default function QuestionsPage({ searchParams }: Props) {
 	const attemptId = searchParams.attemptId;
 	const router = useRouter();
+	const [questions, setQuestions] = useState<any[]>([]);
+	const [attempt, setAttempt] = useState<any>(null);
+	const [loading, setLoading] = useState(true);
 
-	const validateEmail = (email: string) => {
-		const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return regex.test(email);
-	};
+	useEffect(() => {
+		const fetchData = async () => {
+			try {
+				const [questionsResponse, attemptResponse] = await Promise.all([
+					apiRequest(publicApiUrl.question, { method: "GET" }),
+					apiRequest(`${publicApiUrl.quizAttempt}/${attemptId}`, { method: "GET" }),
+				]);
 
-	if (!validateEmail(email) || !attemptId) {
-		router.replace("/");
+				if (attemptResponse.finishedAt != null) {
+					router.replace("/");
+					return;
+				}
+
+				setQuestions(questionsResponse);
+				setAttempt(attemptResponse);
+			} catch (error) {
+				console.error("Failed to fetch data:", error);
+				router.replace("/");
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		fetchData();
+	}, [attemptId, router]);
+
+	if (loading) {
+		return (
+			<div className="flex justify-center items-center min-h-screen">
+				<Loader2 className="size-10 text-white animate-spin" />
+			</div>
+		);
 	}
 
-	const [questionsResponse, attemptResponse] = await Promise.all([
-		apiRequest(publicApiUrl.question, { method: "GET" }),
-		apiRequest(`${publicApiUrl.quizAttempt}/${attemptId}`, { method: "GET" }),
-	]);
-
-	if (attemptResponse.finishedAt != null) {
-		router.replace("/");
+	if (!questions.length || !attempt) {
+		return null;
 	}
 
 	return (
 		<Questions
-			questions={questionsResponse}
-			limit={questionsResponse.length}
+			questions={questions}
+			limit={questions.length}
 			attemptId={attemptId}
-			email={email}
-			quizId={quizId}
-			initialAnswers={attemptResponse.answers}
+			initialAnswers={attempt.answers}
+            quiz={attempt.quiz as QuizResponse}
 		/>
 	);
 }

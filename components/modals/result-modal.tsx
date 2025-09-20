@@ -15,6 +15,7 @@ const ResultModal = () => {
   const { isOpen, type, onClose, additionalData } = useModalStore();
   const open = isOpen && type === "showResults";
   const router = useRouter();
+  const allowRetake = additionalData?.allowRetake;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -29,15 +30,27 @@ const ResultModal = () => {
           <p className="text-lg md:2xl text-primary font-semibold tracking-wide">
             You scored: {`${additionalData?.score}/${additionalData?.limit}`}
           </p>
-          <Button
-            onClick={() => {
-              router.push("/");
-              onClose();
-            }}
-            className="mt-3 md:mt-5"
-          >
-            Play Again
-          </Button>
+          <div className="flex gap-2 mt-3 md:mt-5">
+            {/* {allowRetake && (
+              <Button
+                onClick={() => {
+                  router.push("/quiz/questions");
+                  onClose();
+                }}
+                variant="outline"
+              >
+                Play Again
+              </Button>
+            )} */}
+            <Button
+              onClick={() => {
+                router.push("/");
+                onClose();
+              }}
+            >
+              Home
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

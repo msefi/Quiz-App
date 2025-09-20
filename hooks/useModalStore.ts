@@ -5,6 +5,7 @@ export type modalType = "showResults" | "quitQuiz";
 interface AdditionalData {
   score?: number;
   limit?: number;
+  allowRetake?: boolean;
 }
 
 interface modalStore {

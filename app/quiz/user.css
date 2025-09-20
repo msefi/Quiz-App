@@ -108,3 +108,15 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.option {
+  @apply w-full text-left p-4 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 transition-colors duration-200;
+}
+
+.option.correct {
+  @apply border-green-500 bg-green-100 text-green-800;
+}
+
+.option.incorrect {
+  @apply border-red-500 bg-red-100 text-red-800;
+}

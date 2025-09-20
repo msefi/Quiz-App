@@ -22,7 +22,9 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { useState, useMemo, useEffect } from "react"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useState, useMemo } from "react"
 import { PaginationState, Updater } from "@tanstack/react-table"
 import { toast } from "sonner"
 import { BreadcrumbNav } from "@/components/breadcrumb-nav"
@@ -47,6 +49,13 @@ export default function Page() {
     )
     const [open, setOpen] = useState(false)
     const [title, setTitle] = useState("")
+    const [useTimer, setUseTimer] = useState(false)
+    const [timerType, setTimerType] = useState("")
+    const [timerDuration, setTimerDuration] = useState("")
+    const [highlightCorrectAnswer, setHighlightCorrectAnswer] = useState(false)
+    const [allowRetake, setAllowRetake] = useState(false)
+    const [isPublic, setIsPublic] = useState(false)
+    const [status, setStatus] = useState("draft")
     const [editQuiz, setEditQuiz] = useState<Quiz | null>(null)
 
 
@@ -56,12 +65,7 @@ export default function Page() {
 
     const columns = useMemo(() => getColumns(handleEdit), [])
 
-    useEffect(() => {
-        if (editQuiz) {
-            setTitle(editQuiz.name)
-            setOpen(true)
-        }
-    }, [editQuiz])
+
 
 
 
@@ -74,19 +78,39 @@ export default function Page() {
 
     if (error) throw new Error("Failed to fetch data!")
 
+    function resetForm() {
+        setTitle("")
+        setUseTimer(false)
+        setTimerType("")
+        setTimerDuration("")
+        setHighlightCorrectAnswer(false)
+        setAllowRetake(false)
+        setIsPublic(false)
+        setStatus("draft")
+        setEditQuiz(null)
+    }
+
     async function createQuiz() {
         try {
             await apiRequest(apiUrl.quiz, {
                 method: "POST",
-                body: { Title: title },
+                body: {
+                    Title: title,
+                    UseTimer: useTimer,
+                    TimerType: timerType || null,
+                    TimerDuration: timerDuration ? parseInt(timerDuration) : null,
+                    HighlightCorrectAnswer: highlightCorrectAnswer,
+                    AllowRetake: allowRetake,
+                    IsPublic: isPublic,
+                    // Status defaults to "draft" on the backend
+                },
             })
             toast.success("Quiz created successfully!")
             setOpen(false)
-            setTitle("")
+            resetForm()
             mutate(undefined, true)
-        } catch (err) {
+        } catch (err: any) {
             toast.error("Failed to create quiz")
-            console.error("Failed to create quiz", err)
         }
     }
 
@@ -95,21 +119,47 @@ export default function Page() {
         try {
             await apiRequest(`${apiUrl.quiz}/${editQuiz.id}`, {
                 method: "PUT",
-                body: { Title: title },
+                body: {
+                    Title: title,
+                    UseTimer: useTimer,
+                    TimerType: timerType || null,
+                    TimerDuration: timerDuration ? parseInt(timerDuration) : null,
+                    HighlightCorrectAnswer: highlightCorrectAnswer,
+                    AllowRetake: allowRetake,
+                    IsPublic: isPublic,
+                    Status: status
+                },
             })
             toast.success("Quiz updated successfully!")
             setOpen(false)
-            setEditQuiz(null)
-            setTitle("")
+            resetForm()
             mutate(undefined, true)
-        } catch (err) {
-            toast.error("Failed to update quiz")
-            console.error("Failed to update quiz", err)
+        } catch (err: any) {
+            const errorData = err?.info || err?.data || err;
+            const errorMessage = typeof errorData === "string"
+                ? errorData
+                : errorData?.message || errorData?.Message || JSON.stringify(errorData) || "Unknown error";
+
+            if (errorData?.errorCode === "PUBLISH_WITHOUT_QUESTIONS") {
+                toast.error(errorMessage);
+            } else {
+                toast.error(errorMessage);
+            }
         }
+
     }
 
     function handleEdit(quiz: Quiz) {
         setEditQuiz(quiz)
+        setTitle(quiz.name)
+        setUseTimer(quiz.useTimer)
+        setTimerType(quiz.timerType || "")
+        setTimerDuration(quiz.timerDuration ? quiz.timerDuration.toString() : "")
+        setHighlightCorrectAnswer(quiz.highlightCorrectAnswer)
+        setAllowRetake(quiz.allowRetake)
+        setIsPublic(quiz.isPublic)
+        setStatus(quiz.status || "draft")
+        setOpen(true)
     }
 
     function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -145,12 +195,12 @@ export default function Page() {
                     </div>
                     <Dialog open={open} onOpenChange={setOpen}>
                         <DialogTrigger asChild>
-                            <Button>
+                            <Button onClick={resetForm}>
                                 <Plus className="mr-2 h-4 w-4" />
                                 New Quiz
                             </Button>
                         </DialogTrigger>
-                        <DialogContent>
+                        <DialogContent className="max-w-4xl">
                             <DialogHeader>
                                 <DialogTitle>{editQuiz ? "Edit Quiz" : "Create New Quiz"}</DialogTitle>
                                 <DialogDescription>
@@ -170,6 +220,103 @@ export default function Page() {
                                         autoFocus
                                     />
                                 </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="useTimer" className="text-right">
+                                        Use Timer
+                                    </Label>
+                                    <Checkbox
+                                        id="useTimer"
+                                        checked={useTimer}
+                                        onCheckedChange={(checked) => setUseTimer(!!checked)}
+                                        className="col-span-3"
+                                    />
+                                </div>
+                                {useTimer && (
+                                    <>
+                                        <div className="grid grid-cols-4 items-center gap-4">
+                                            <Label htmlFor="timerType" className="text-right">
+                                                Timer Type
+                                            </Label>
+                                            <Select
+                                                value={timerType}
+                                                onValueChange={(value) => setTimerType(value)}
+                                            >
+                                                <SelectTrigger className="col-span-3">
+                                                    <SelectValue placeholder="Select timer type" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="PerQuestion">Per Question</SelectItem>
+                                                    <SelectItem value="Overall">Overall</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="grid grid-cols-4 items-center gap-4">
+                                            <Label htmlFor="timerDuration" className="text-right">
+                                                Timer Duration (seconds)
+                                            </Label>
+                                            <Input
+                                                id="timerDuration"
+                                                type="number"
+                                                min={1}
+                                                value={timerDuration}
+                                                onChange={(e) => setTimerDuration(e.target.value)}
+                                                className="col-span-3"
+                                            />
+                                        </div>
+                                    </>
+                                )}
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="highlightCorrectAnswer" className="text-right">
+                                        Highlight Correct Answer
+                                    </Label>
+                                    <Checkbox
+                                        id="highlightCorrectAnswer"
+                                        checked={highlightCorrectAnswer}
+                                        onCheckedChange={(checked) => setHighlightCorrectAnswer(!!checked)}
+                                        className="col-span-3"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="allowRetake" className="text-right">
+                                        Allow Retake
+                                    </Label>
+                                    <Checkbox
+                                        id="allowRetake"
+                                        checked={allowRetake}
+                                        onCheckedChange={(checked) => setAllowRetake(!!checked)}
+                                        className="col-span-3"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="isPublic" className="text-right">
+                                        Is Public
+                                    </Label>
+                                    <Checkbox
+                                        id="isPublic"
+                                        checked={isPublic}
+                                        onCheckedChange={(checked) => setIsPublic(!!checked)}
+                                        className="col-span-3"
+                                    />
+                                </div>
+                                {editQuiz && (
+                                    <div className="grid grid-cols-4 items-center gap-4">
+                                        <Label htmlFor="status" className="text-right">
+                                            Status
+                                        </Label>
+                                        <Select
+                                            value={status}
+                                            onValueChange={(value) => setStatus(value)}
+                                        >
+                                            <SelectTrigger className="col-span-3">
+                                                <SelectValue placeholder="Select status" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="draft">Draft</SelectItem>
+                                                <SelectItem value="publish">Publish</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
                             </div>
                             <DialogFooter>
                                 {editQuiz ? (

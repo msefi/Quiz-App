@@ -34,7 +34,7 @@ export function DelayedSkeleton({ isLoading, pageSize, className }: DelayedSkele
     return () => {
       if (loadingTimer) clearTimeout(loadingTimer)
     }
-  }, [isLoading, loadingStartTime, loadingTimer])
+  }, [isLoading, loadingStartTime])
 
   if (!showSkeleton) return null
 

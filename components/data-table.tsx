@@ -95,7 +95,7 @@ export function DataTable<TData>({
 	return (
 		<div className="flex w-full flex-col justify-start gap-6">
 			<div className="overflow-hidden rounded-lg border">
-				<Table className="table-fixed">
+				<Table className="">
 					<TableHeader className="sticky top-0 z-10 bg-muted">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
