@@ -22,11 +22,13 @@ type QuizResponse = {
 type Props = {
 	searchParams: {
 		attemptId: string;
+		quizId: string
 	};
 };
 
 export default function QuestionsPage({ searchParams }: Props) {
 	const attemptId = searchParams.attemptId;
+	const quizId = searchParams.quizId;
 	const router = useRouter();
 	const [questions, setQuestions] = useState<any[]>([]);
 	const [attempt, setAttempt] = useState<any>(null);
@@ -36,7 +38,7 @@ export default function QuestionsPage({ searchParams }: Props) {
 		const fetchData = async () => {
 			try {
 				const [questionsResponse, attemptResponse] = await Promise.all([
-					apiRequest(publicApiUrl.question, { method: "GET" }),
+					apiRequest(`${publicApiUrl.question}/${quizId}`, { method: "GET" }),
 					apiRequest(`${publicApiUrl.quizAttempt}/${attemptId}`, { method: "GET" }),
 				]);
 

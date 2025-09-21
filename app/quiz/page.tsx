@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Search, Clock, CheckCircle, XCircle } from "lucide-react";
-import { DelayedSkeleton } from "@/components/ui/DelayedSkeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Home() {

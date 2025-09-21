@@ -49,7 +49,7 @@ export default function Home() {
                 body: { email, quizId },
             });
             const attemptId = response.attemptId;
-            router.push(`/quiz/questions?attemptId=${attemptId}`);
+            router.push(`/quiz/questions?attemptId=${attemptId}&quizId=${quizId}`);
         } catch (err) {
             toast.error("Failed to start quiz. Please try again.");
         }

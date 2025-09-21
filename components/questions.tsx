@@ -14,16 +14,11 @@ import { toast } from "sonner";
 
 type Props = {
 	questions: {
-		category: string;
 		id: string;
 		correctAnswer: string;
 		incorrectAnswers: string[];
 		question: string;
-		tags: string[];
 		type: string;
-		difficulty: string;
-		regions: [];
-		isNiche: boolean;
 	}[];
 	limit: number;
 	attemptId: string;
